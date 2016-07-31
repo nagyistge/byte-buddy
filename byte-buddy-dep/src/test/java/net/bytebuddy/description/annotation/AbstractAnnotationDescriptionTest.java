@@ -707,7 +707,7 @@ public abstract class AbstractAnnotationDescriptionTest {
         private static class BreakingClassVisitor extends ClassVisitor {
 
             public BreakingClassVisitor(ClassVisitor classVisitor) {
-                super(Opcodes.ASM5, classVisitor);
+                super(Opcodes.ASM6, classVisitor);
             }
 
             @Override

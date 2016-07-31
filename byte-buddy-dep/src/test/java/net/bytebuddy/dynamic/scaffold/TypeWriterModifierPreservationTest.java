@@ -69,7 +69,7 @@ public class TypeWriterModifierPreservationTest {
         public int modifiers, inner;
 
         public TypeModifierExtractor() {
-            super(Opcodes.ASM5);
+            super(Opcodes.ASM6);
         }
 
         @Override
@@ -93,7 +93,7 @@ public class TypeWriterModifierPreservationTest {
         public final int modifiers, inner;
 
         public TypeValidator(ClassVisitor classVisitor, int modifiers, int inner) {
-            super(Opcodes.ASM5, classVisitor);
+            super(Opcodes.ASM6, classVisitor);
             this.modifiers = modifiers;
             this.inner = inner;
         }

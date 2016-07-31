@@ -1793,7 +1793,7 @@ public interface TypeWriter<T> {
              * @param classVisitor The class visitor to which any calls are delegated to.
              */
             protected ValidatingClassVisitor(ClassVisitor classVisitor) {
-                super(Opcodes.ASM5, classVisitor);
+                super(Opcodes.ASM6, classVisitor);
             }
 
             /**
@@ -2733,7 +2733,7 @@ public interface TypeWriter<T> {
                  * @param fieldVisitor The field visitor to which any calls are delegated to.
                  */
                 protected ValidatingFieldVisitor(FieldVisitor fieldVisitor) {
-                    super(Opcodes.ASM5, fieldVisitor);
+                    super(Opcodes.ASM6, fieldVisitor);
                 }
 
                 @Override
@@ -2767,7 +2767,7 @@ public interface TypeWriter<T> {
                  * @param name          The name of the method being visited.
                  */
                 protected ValidatingMethodVisitor(MethodVisitor methodVisitor, String name) {
-                    super(Opcodes.ASM5, methodVisitor);
+                    super(Opcodes.ASM6, methodVisitor);
                     this.name = name;
                 }
 
@@ -3255,7 +3255,7 @@ public interface TypeWriter<T> {
                  * @param contextRegistry A context registry to register the lazily created implementation context to.
                  */
                 protected RedefinitionClassVisitor(ClassVisitor classVisitor, TypeInitializer typeInitializer, ContextRegistry contextRegistry) {
-                    super(Opcodes.ASM5, classVisitor);
+                    super(Opcodes.ASM6, classVisitor);
                     this.typeInitializer = typeInitializer;
                     this.contextRegistry = contextRegistry;
                     List<? extends FieldDescription> fieldDescriptions = instrumentedType.getDeclaredFields();
@@ -3451,7 +3451,7 @@ public interface TypeWriter<T> {
                      * @param record       The field pool record to apply onto the field visitor.
                      */
                     protected AttributeObtainingFieldVisitor(FieldVisitor fieldVisitor, FieldPool.Record record) {
-                        super(Opcodes.ASM5, fieldVisitor);
+                        super(Opcodes.ASM6, fieldVisitor);
                         this.record = record;
                     }
 
@@ -3515,7 +3515,7 @@ public interface TypeWriter<T> {
                     protected CodePreservingMethodVisitor(MethodVisitor actualMethodVisitor,
                                                           MethodPool.Record record,
                                                           MethodRebaseResolver.Resolution resolution) {
-                        super(Opcodes.ASM5, actualMethodVisitor);
+                        super(Opcodes.ASM6, actualMethodVisitor);
                         this.actualMethodVisitor = actualMethodVisitor;
                         this.record = record;
                         this.resolution = resolution;
@@ -3601,7 +3601,7 @@ public interface TypeWriter<T> {
                      * @param record              The method pool entry to apply.
                      */
                     protected AttributeObtainingMethodVisitor(MethodVisitor actualMethodVisitor, MethodPool.Record record) {
-                        super(Opcodes.ASM5, actualMethodVisitor);
+                        super(Opcodes.ASM6, actualMethodVisitor);
                         this.actualMethodVisitor = actualMethodVisitor;
                         this.record = record;
                         record.applyHead(actualMethodVisitor);

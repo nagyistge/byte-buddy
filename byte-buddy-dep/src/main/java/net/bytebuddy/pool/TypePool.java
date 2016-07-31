@@ -1998,7 +1998,7 @@ public interface TypePool {
                  * Creates a new rejecting signature visitor.
                  */
                 public RejectingSignatureVisitor() {
-                    super(Opcodes.ASM5);
+                    super(Opcodes.ASM6);
                 }
 
                 @Override
@@ -7629,7 +7629,7 @@ public interface TypePool {
              * Creates a new type extractor.
              */
             protected TypeExtractor() {
-                super(Opcodes.ASM5);
+                super(Opcodes.ASM6);
                 superTypeAnnotationTokens = new HashMap<Integer, Map<String, List<LazyTypeDescription.AnnotationToken>>>();
                 typeVariableAnnotationTokens = new HashMap<Integer, Map<String, List<LazyTypeDescription.AnnotationToken>>>();
                 typeVariableBoundsAnnotationTokens = new HashMap<Integer, Map<Integer, Map<String, List<LazyTypeDescription.AnnotationToken>>>>();
@@ -7821,7 +7821,7 @@ public interface TypePool {
                  * @param componentTypeLocator A locator for the component type of any found annotation value.
                  */
                 protected AnnotationExtractor(AnnotationRegistrant annotationRegistrant, ComponentTypeLocator componentTypeLocator) {
-                    super(Opcodes.ASM5);
+                    super(Opcodes.ASM6);
                     this.annotationRegistrant = annotationRegistrant;
                     this.componentTypeLocator = componentTypeLocator;
                 }
@@ -8017,7 +8017,7 @@ public interface TypePool {
                                          String internalName,
                                          String descriptor,
                                          String genericSignature) {
-                    super(Opcodes.ASM5);
+                    super(Opcodes.ASM6);
                     this.modifiers = modifiers;
                     this.internalName = internalName;
                     this.descriptor = descriptor;
@@ -8179,7 +8179,7 @@ public interface TypePool {
                                           String descriptor,
                                           String genericSignature,
                                           String[] exceptionName) {
-                    super(Opcodes.ASM5);
+                    super(Opcodes.ASM6);
                     this.modifiers = modifiers;
                     this.internalName = internalName;
                     this.descriptor = descriptor;

@@ -63,6 +63,7 @@ public class ClassFileLocatorForClassLoaderTest {
     }
 
     @Test
+    @JavaVersionRule.Enforce(value = 8, direction = JavaVersionRule.Sort.AT_MOST)
     public void testReadTypeBootstrapClassLoader() throws Exception {
         ClassFileLocator.Resolution resolution = ClassFileLocator.ForClassLoader.read(Object.class);
         assertThat(resolution.isResolved(), is(true));
