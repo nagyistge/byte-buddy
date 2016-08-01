@@ -3,6 +3,7 @@ package net.bytebuddy.utility;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.bytebuddy.description.NamedElement;
 
+import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,6 +36,7 @@ public class JavaModule implements NamedElement.WithOptionalName {
                     module.getDeclaredMethod("getClassLoader"),
                     module.getDeclaredMethod("isNamed"),
                     module.getDeclaredMethod("getName"),
+                    module.getDeclaredMethod("getResourceAsStream", String.class),
                     module.getDeclaredMethod("canRead", module),
                     Instrumentation.class.getDeclaredMethod("addModuleReads", module, module));
         } catch (Exception ignored) {
@@ -155,6 +157,10 @@ public class JavaModule implements NamedElement.WithOptionalName {
         return module.toString();
     }
 
+    public InputStream getResourceAsStream(String name) {
+        return DISPATCHER.getResourceAsStream(module, name);
+    }
+
     /**
      * A dispatcher for accessing the {@code java.lang.reflect.Module} API if it is available on the current VM.
      */
@@ -190,6 +196,8 @@ public class JavaModule implements NamedElement.WithOptionalName {
          * @return The module's (implicit or explicit) name.
          */
         String getName(Object module);
+
+        InputStream getResourceAsStream(Object module, String name);
 
         /**
          * Returns the module's class loader.
@@ -242,6 +250,8 @@ public class JavaModule implements NamedElement.WithOptionalName {
              */
             private final Method getName;
 
+            private final Method getResourceAsStream;
+
             /**
              * The {@code java.lang.reflect.Module#canRead(Module)} method.
              */
@@ -255,18 +265,26 @@ public class JavaModule implements NamedElement.WithOptionalName {
             /**
              * Creates an enabled dispatcher.
              *
-             * @param getModule      The {@code java.lang.Class#getModule()} method.
-             * @param getClassLoader The {@code java.lang.reflect.Module#getClassLoader()} method.
-             * @param isNamed        The {@code java.lang.reflect.Module#isNamed()} method.
-             * @param getName        The {@code java.lang.reflect.Module#getName()} method.
-             * @param canRead        The {@code java.lang.reflect.Module#canRead(Module)} method.
-             * @param addModuleReads The {@code java.lang.instrument.Instrumentation#addModuleReads(Module, Module)} method.
+             * @param getModule        The {@code java.lang.Class#getModule()} method.
+             * @param getClassLoader   The {@code java.lang.reflect.Module#getClassLoader()} method.
+             * @param isNamed          The {@code java.lang.reflect.Module#isNamed()} method.
+             * @param getName          The {@code java.lang.reflect.Module#getName()} method.
+             * @param getResourceAsStream
+             * @param canRead          The {@code java.lang.reflect.Module#canRead(Module)} method.
+             * @param addModuleReads   The {@code java.lang.instrument.Instrumentation#addModuleReads(Module, Module)} method.
              */
-            protected Enabled(Method getModule, Method getClassLoader, Method isNamed, Method getName, Method canRead, Method addModuleReads) {
+            protected Enabled(Method getModule,
+                              Method getClassLoader,
+                              Method isNamed,
+                              Method getName,
+                              Method getResourceAsStream,
+                              Method canRead,
+                              Method addModuleReads) {
                 this.getModule = getModule;
                 this.getClassLoader = getClassLoader;
                 this.isNamed = isNamed;
                 this.getName = getName;
+                this.getResourceAsStream = getResourceAsStream;
                 this.canRead = canRead;
                 this.addModuleReads = addModuleReads;
             }
@@ -317,6 +335,17 @@ public class JavaModule implements NamedElement.WithOptionalName {
                     throw new IllegalStateException("Cannot access " + getName, exception);
                 } catch (InvocationTargetException exception) {
                     throw new IllegalStateException("Cannot invoke " + getName, exception.getCause());
+                }
+            }
+
+            @Override
+            public InputStream getResourceAsStream(Object module, String name) {
+                try {
+                    return (InputStream) getResourceAsStream.invoke(module, name);
+                } catch (IllegalAccessException exception) {
+                    throw new IllegalStateException("Cannot access " + getResourceAsStream, exception);
+                } catch (InvocationTargetException exception) {
+                    throw new IllegalStateException("Cannot invoke " + getResourceAsStream, exception.getCause());
                 }
             }
 
@@ -411,6 +440,11 @@ public class JavaModule implements NamedElement.WithOptionalName {
 
             @Override
             public String getName(Object module) {
+                throw new IllegalStateException("Current VM does not support modules");
+            }
+
+            @Override
+            public InputStream getResourceAsStream(Object module, String name) {
                 throw new IllegalStateException("Current VM does not support modules");
             }
 

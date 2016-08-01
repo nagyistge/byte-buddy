@@ -2,6 +2,7 @@ package net.bytebuddy.dynamic;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.utility.JavaModule;
 import net.bytebuddy.utility.StreamDrainer;
 
 import java.io.*;
@@ -263,10 +264,31 @@ public interface ClassFileLocator extends Closeable {
      */
     class ForClassLoader implements ClassFileLocator {
 
+        private static final Map<String, JavaModule> BOOT_MODULES;
+
+        static {
+            Map<String, JavaModule> bootModules;
+            try {
+                bootModules = new HashMap<String, JavaModule>();
+                Class<?> layerType = Class.forName("java.lang.reflect.Layer");
+                for (Object rawModule : (Set<?>) layerType.getDeclaredMethod("modules").invoke(layerType.getDeclaredMethod("boot").invoke(null))) {
+                    JavaModule module = JavaModule.of(rawModule);
+                    for (String packageName : (String[]) Class.forName("java.lang.reflect.Module").getDeclaredMethod("getPackages").invoke(rawModule)) {
+                        bootModules.put(packageName, module);
+                    }
+                }
+            } catch (Exception ignored) {
+                bootModules = Collections.emptyMap();
+            }
+            BOOT_MODULES = bootModules;
+        }
+
         /**
          * The class loader to query.
          */
         private final ClassLoader classLoader;
+
+        private final Map<String, JavaModule> modules;
 
         /**
          * Creates a new class file locator for the given class loader.
@@ -274,7 +296,12 @@ public interface ClassFileLocator extends Closeable {
          * @param classLoader The class loader to query which must not be the bootstrap class loader, i.e. {@code null}.
          */
         protected ForClassLoader(ClassLoader classLoader) {
+            this(classLoader, BOOT_MODULES);
+        }
+
+        protected ForClassLoader(ClassLoader classLoader, Map<String, JavaModule> modules) {
             this.classLoader = classLoader;
+            this.modules = modules;
         }
 
         /**
@@ -320,6 +347,22 @@ public interface ClassFileLocator extends Closeable {
 
         @Override
         public Resolution locate(String typeName) throws IOException {
+            int packageIndex = typeName.lastIndexOf('.');
+            if (packageIndex != -1) {
+                JavaModule module = modules.get(typeName.substring(0, packageIndex));
+                if (module != null) {
+                    InputStream inputStream = module.getResourceAsStream(typeName.replace('.', '/') + CLASS_FILE_EXTENSION);
+                    if (inputStream != null) {
+                        try {
+                            return new Resolution.Explicit(StreamDrainer.DEFAULT.drain(inputStream));
+                        } finally {
+                            inputStream.close();
+                        }
+                    } else {
+                        return new Resolution.Illegal(typeName);
+                    }
+                }
+            }
             return locate(classLoader, typeName);
         }
 
