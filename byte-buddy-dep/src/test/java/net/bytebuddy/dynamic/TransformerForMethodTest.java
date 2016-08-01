@@ -11,7 +11,6 @@ import net.bytebuddy.description.type.TypeDefinition;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeList;
 import net.bytebuddy.description.type.TypeVariableToken;
-import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.test.utility.MockitoRule;
 import net.bytebuddy.test.utility.ObjectPropertyAssertion;
 import org.junit.Before;
@@ -23,6 +22,7 @@ import org.mockito.Mock;
 import java.util.Collections;
 
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.none;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
@@ -77,7 +77,7 @@ public class TransformerForMethodTest {
         when(typeVariableBound.getSymbol()).thenReturn(QUX);
         when(typeVariableBound.getSort()).thenReturn(TypeDefinition.Sort.VARIABLE);
         when(typeVariableBound.asGenericType()).thenReturn(typeVariableBound);
-        when(methodDescription.asToken(ElementMatchers.is(instrumentedType))).thenReturn(methodToken);
+        when(methodDescription.asToken(none())).thenReturn(methodToken);
         when(methodDescription.getDeclaringType()).thenReturn(declaringType);
         when(methodDescription.asDefined()).thenReturn(definedMethod);
         when(methodToken.getName()).thenReturn(FOO);
@@ -153,14 +153,32 @@ public class TransformerForMethodTest {
     }
 
     @Test
+    public void testRetainsInstrumentedType() throws Exception {
+        TypeDescription typeDescription = new TypeDescription.ForLoadedType(Bar.class);
+        MethodDescription methodDescription = typeDescription.getSuperClass().getDeclaredMethods().filter(named(BAR)).getOnly();
+        MethodDescription transformed = Transformer.ForMethod.withModifiers().transform(typeDescription, methodDescription);
+        assertThat(transformed, is(methodDescription));
+        assertThat(transformed.getModifiers(), is(methodDescription.getModifiers()));
+        assertThat(transformed.getReturnType().asErasure(), is(typeDescription));
+        assertThat(transformed.getReturnType().getSort(), is(TypeDefinition.Sort.PARAMETERIZED));
+        assertThat(transformed.getReturnType().getTypeArguments().size(), is(1));
+        assertThat(transformed.getReturnType().getTypeArguments().getOnly(), is(typeDescription.getSuperClass().getDeclaredMethods().filter(named(FOO)).getOnly().getReturnType()));
+    }
+
+    @Test
     public void testObjectProperties() throws Exception {
         ObjectPropertyAssertion.of(Transformer.ForMethod.class).apply();
         ObjectPropertyAssertion.of(Transformer.ForMethod.MethodModifierTransformer.class).apply();
+        ObjectPropertyAssertion.of(Transformer.ForMethod.TransformedMethod.AttachmentVisitor.class).apply();
     }
 
     private static class Foo<T> {
 
         T foo() {
+            return null;
+        }
+
+        Bar<T> bar() {
             return null;
         }
     }

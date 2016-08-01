@@ -2578,6 +2578,27 @@ public interface AgentBuilder {
         ClassFileLocator classFileLocator(ClassLoader classLoader, JavaModule module);
 
         /**
+         * A location strategy that never locates any byte code.
+         */
+        enum NoOp implements LocationStrategy {
+
+            /**
+             * The singleton instance.
+             */
+            INSTANCE;
+
+            @Override
+            public ClassFileLocator classFileLocator(ClassLoader classLoader, JavaModule module) {
+                return ClassFileLocator.NoOp.INSTANCE;
+            }
+
+            @Override
+            public String toString() {
+                return "AgentBuilder.LocationStrategy.NoOp." + name();
+            }
+        }
+
+        /**
          * A location strategy that locates class files by querying an instrumented type's {@link ClassLoader}.
          */
         enum ForClassLoader implements LocationStrategy {
@@ -4686,7 +4707,8 @@ public interface AgentBuilder {
                     LambdaInstrumentationStrategy.DISABLED,
                     DescriptionStrategy.Default.HYBRID,
                     InstallationStrategy.Default.ESCALATING,
-                    new RawMatcher.Disjunction(new RawMatcher.ForElementMatchers(any(), isBootstrapClassLoader(), any()), new RawMatcher.ForElementMatchers(nameStartsWith("net.bytebuddy.").<TypeDescription>or(isSynthetic()), any(), any())),
+                    new RawMatcher.Disjunction(new RawMatcher.ForElementMatchers(any(), isBootstrapClassLoader(), any()),
+                            new RawMatcher.ForElementMatchers(nameStartsWith("net.bytebuddy.").or(nameStartsWith("sun.reflect.")).<TypeDescription>or(isSynthetic()), any(), any())),
                     Transformation.Ignored.INSTANCE);
         }
 
